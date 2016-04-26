@@ -11,4 +11,5 @@ typedef unsigned long ulong;
 typedef unsigned char uchar;
 
 wchar_t* str_to_wchar(std::string str);
+char* str_to_char(std::string str);
 std::string getTime();

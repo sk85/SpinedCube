@@ -1,5 +1,5 @@
-#include <SPR.h>
-#include <Common.h>
+#include "..\Header\SPR.h"
+#include "..\Header\Common.h"
 
 #include <iostream>
 

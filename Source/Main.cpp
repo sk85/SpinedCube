@@ -6,11 +6,11 @@
 #include <atltime.h>
 #include <direct.h>
 
-#include <Common.h>
-#include <Node.h>
-#include <Expansion.h>
-#include <SPR.h>
-#include <Distance.h>
+#include "..\Header\Common.h"
+#include "..\Header\Node.h"
+#include "..\Header\Expansion.h"
+#include "..\Header\SPR.h"
+#include "..\Header\Distance.h"
 
 //#define test2
  //#define TEST2
@@ -48,7 +48,7 @@ private:
 		}
 
 		// 初期化
-		if (PathFileExists(str_to_wchar(filename_bin[0]))) {
+		if (PathFileExists(str_to_char(filename_bin[0]))) {
 			// 既にファイル計算結果を保存済みなら読み込み
 			cout << "n=" << dim << "の隣接情報をファイルから読み込みます...";
 			load_file();
@@ -118,12 +118,12 @@ public:
 
 		// フォルダ作成
 		string dir_bin = "NeighborBin\\";
-		wchar_t *dir_w = str_to_wchar(dir_bin);
+		char *dir_w = str_to_char(dir_bin);
 		if (!PathIsDirectoryEmpty(dir_w)) {
 			CreateDirectory(dir_w, NULL);
 		}
 		string dir_csv = "NeighborCsv\\";
-		dir_w = str_to_wchar(dir_csv);
+		dir_w = str_to_char(dir_csv);
 		if (!PathIsDirectoryEmpty(dir_w)) {
 			CreateDirectory(dir_w, NULL);
 		}
@@ -196,8 +196,8 @@ public:
 			printf_s("%sが開けません\n", filename.c_str());
 			return;
 		}
-		for (int s = 0; s < node_num; ++s) {
-			for (int d = 0; d < diameter + 1; ++d) {
+		for (size_t s = 0; s < node_num; ++s) {
+			for (size_t d = 0; d < diameter + 1; ++d) {
 				fout << ary[s][d] << ",";
 			}
 			fout << endl;
@@ -208,7 +208,7 @@ public:
 
 int main() {
 	// 前方隣接頂点数に関する実験
-	int max_dim = 15, l;
+	size_t max_dim = 15, l;
 
 	for (size_t dim = 2; dim <= max_dim; dim++)
 	{
@@ -218,7 +218,7 @@ int main() {
 
 
 
-// string をワイド文字列に変換
+// string をLPWSTR ＝ WCHAR*に変換
 wchar_t* str_to_wchar(string str) {
 	size_t length = str.length() + 1;
 	wchar_t* wch = (wchar_t *)malloc(length * sizeof(wchar_t));
@@ -227,6 +227,16 @@ wchar_t* str_to_wchar(string str) {
 
 	return wch;
 }
+
+// string をLPTSTR ＝ TCHAR*に変換
+char* str_to_char(string str) {
+	size_t length = str.length() + 1;
+	char* ch = (char *)malloc(length * sizeof(char));
+	for (size_t i = 0; i < length; i++)
+		ch[i] = str[i];
+	return ch;
+}
+
 
 
 //現在日時を取得
