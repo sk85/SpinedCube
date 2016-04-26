@@ -214,67 +214,6 @@ int main() {
 	{
 		Distance len(dim);
 	}
-	
-
-#ifdef TEST3
-	int l;
-	for (int s = 0; s < 16; ++s) {
-		double length_sum = 0;
-		for (int d = 8; d < 16; ++d) {
-			if (s == d) continue;
-			Expansion exp = SPR::GetMinimalExpansion(s, d, 4);
-			cout << s << ", " << d << endl;
-			cout << Node(s) << endl;
-			cout << Node(d) << endl << endl;
-			exp.Show();
-			cout << "-------------------------------------" ;
-			cin >> l;
-		}
-	}
-#endif
-
-	// 始点と終点の組合せ16種類
-#ifdef TEST2
-	for (int dim = 2; dim < 33; ++dim) {
-		double node_num = pow(2, dim);
-		double length_ary[4][4] = { 
-			{0, 0, 0, 0},
-			{0, 0, 0, 0}
-		};
-		double count_ary[4][4] = {
-			{ 0, 0, 0, 0 },
-			{ 0, 0, 0, 0 }
-		};
-		cout << "n=" << dim << endl;
-
-		for (int s = 0; s < node_num; ++s) {
-			double length_sum = 0;
-			for (int d = 0; d < node_num; ++d) {
-				if (s == d) continue;
-				int tmp = SPR::GetMinimalExpansion(s, d, dim).GetCount();
-				length_ary[s & 0b11][d & 0b11] += tmp;
-				count_ary[s & 0b11][d & 0b11] ++;
-			}
-		}
-		for (size_t i = 0; i < 4; i++)
-		{
-			double sum = 0;
-			for (size_t j = 0; j < 4; j++)
-			{
-				sum += length_ary[i][j];
-				cout << length_ary[i][j] << " ";
-			}
-			cout << "\t";
-			for (size_t j = 0; j < 4; j++)
-			{
-				cout << count_ary[i][j] << " ";
-			}
-			cout << "  [" << sum << "]" << endl;
-		}
-	}
-	cout << "finish";
-
-#endif // TEST2
 }
 
 
