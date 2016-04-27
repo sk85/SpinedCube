@@ -12,9 +12,6 @@
 #include "..\Header\SPR.h"
 #include "..\Header\Distance.h"
 
-//#define test2
- //#define TEST2
-
 using namespace std;
 
 void test1();

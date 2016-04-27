@@ -1,5 +1,6 @@
 #include "..\Header\Node.h"
 
+
 // コンストラクタたち
 Node::Node() {};
 

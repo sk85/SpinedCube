@@ -1,4 +1,5 @@
-#include <Distance.h>
+#include "..\Header\Distance.h"
+
 
 // dist_arrayのセットアップ本体
 void Distance::init_dist_array() {
@@ -10,7 +11,7 @@ void Distance::init_dist_array() {
 	}
 
 	// 初期化
-	if (PathFileExists(str_to_wchar(bin_filename))) {
+	if (PathFileExists(str_to_char(bin_filename))) {
 		// 既にファイル計算結果を保存済みなら読み込み
 		cout << "n=" << dim << "の距離をファイルから読み込みます...";
 		load_file();
@@ -36,8 +37,8 @@ void Distance::load_file() {
 		printf_s("%sが開けません\n", bin_filename.c_str());
 		return;
 	}
-	for (int s = 0; s < node_num; ++s) {
-		for (int d = 0; d < node_num; ++d) {
+	for (size_t s = 0; s < node_num; ++s) {
+		for (size_t d = 0; d < node_num; ++d) {
 			fin.read((char *)&dist_array[s][d], sizeof(uchar));
 		}
 	}
@@ -46,8 +47,8 @@ void Distance::load_file() {
 
 // 距離を計算
 void Distance::calc_distination() {
-	for (int s = 0; s < node_num; ++s) {
-		for (int d = 0; d < node_num; ++d) {
+	for (size_t s = 0; s < node_num; ++s) {
+		for (size_t d = 0; d < node_num; ++d) {
 			// 同じノード同士・同じノードの組は計算しない
 			if (s <= d) {
 				if (s == d) dist_array[s][d] = 0;
@@ -69,8 +70,8 @@ void Distance::save_binary() {
 		printf_s("%sが開けません\n", bin_filename.c_str());
 		return;
 	}
-	for (int s = 0; s < node_num; ++s) {
-		for (int d = 0; d < node_num; ++d) {
+	for (size_t s = 0; s < node_num; ++s) {
+		for (size_t d = 0; d < node_num; ++d) {
 			fout.write((char *)&dist_array[s][d], sizeof(uchar));
 		}
 	}
@@ -85,9 +86,9 @@ Distance::Distance(size_t _dim) {
 
 	// フォルダ作成
 	string dir = "DistBin\\";
-	wchar_t *dir_w = str_to_wchar(dir);
-	if (!PathIsDirectoryEmpty(dir_w)) {
-		CreateDirectory(dir_w, NULL);
+	char *dir_c = str_to_char(dir);
+	if (!PathIsDirectoryEmpty(dir_c)) {
+		CreateDirectory(dir_c, NULL);
 	}
 
 	bin_filename = dir + to_string(dim) + ".bin";
@@ -110,8 +111,8 @@ Distance::~Distance() {
 
 // dist_arrayを標準出力
 void Distance::show_dist_array() {
-	for (int s = 0; s < node_num; ++s) {
-		for (int d = 0; d < node_num; ++d) {
+	for (size_t s = 0; s < node_num; ++s) {
+		for (size_t d = 0; d < node_num; ++d) {
 
 			cout << static_cast<int>(dist_array[s][d]) << ' ';
 		}

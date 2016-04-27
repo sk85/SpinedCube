@@ -1,7 +1,7 @@
+#include <iostream>
+
 #include "..\Header\SPR.h"
 #include "..\Header\Common.h"
-
-#include <iostream>
 
 
 using namespace std;
