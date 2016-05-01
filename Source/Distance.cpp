@@ -2,12 +2,19 @@
 
 
 // dist_arrayのセットアップ本体
-void Distance::init_dist_array() {
+void Distance::init_Distinations() {
 	// 領域の確保
-	dist_array = new uchar*[node_num];
-	for (size_t i = 0; i < node_num; i++)
-	{
-		dist_array[i] = new uchar[node_num];
+	
+	Distinations = new uchar*[node_num - 1];
+	for (size_t s = 0; s < node_num - 1; s++){
+		try {
+			Distinations[s] = new uchar[node_num - 1 - s];
+		}
+		catch (const std::bad_alloc& e) {
+			cout << (node_num - 1 - s) << e.what() << endl;
+			int l;
+			cin >> l;
+		}
 	}
 
 	// 初期化
@@ -23,7 +30,7 @@ void Distance::init_dist_array() {
 		calc_distination();
 		cout << "ok" << endl;
 		// ついでにファイルに保存しておく
-		cout << "n=" << dim << "の距離をファイル保存じます\t" << getTime() << "...";
+		cout << "n=" << dim << "の距離をファイル保存します\t" << getTime() << "...";
 		save_binary();
 		cout << "ok" << endl;
 	}
@@ -37,27 +44,20 @@ void Distance::load_file() {
 		printf_s("%sが開けません\n", bin_filename.c_str());
 		return;
 	}
-	for (size_t s = 0; s < node_num; ++s) {
-		for (size_t d = 0; d < node_num; ++d) {
-			fin.read((char *)&dist_array[s][d], sizeof(uchar));
-		}
+	
+	for (size_t s = 0; s < node_num - 1; ++s) {
+		fin.read((char *)Distinations[s], sizeof(uchar) * (node_num - s - 1));
 	}
+
 	fin.close();  //ファイルを閉じる
 }
 
 // 距離を計算
 void Distance::calc_distination() {
-	for (size_t s = 0; s < node_num; ++s) {
-		for (size_t d = 0; d < node_num; ++d) {
-			// 同じノード同士・同じノードの組は計算しない
-			if (s <= d) {
-				if (s == d) dist_array[s][d] = 0;
-				continue;
-			}
-
+	for (size_t s = 0; s < node_num - 1; ++s) {
+		for (size_t d = s + 1; d < node_num; ++d) {
 			int tmp = SPR::GetMinimalExpansion(s, d, static_cast<int>(dim)).GetCount();
-			dist_array[s][d] = tmp;
-			dist_array[d][s] = tmp;
+			Distinations[s][d - s - 1] = tmp;
 		}
 	}
 }
@@ -70,11 +70,11 @@ void Distance::save_binary() {
 		printf_s("%sが開けません\n", bin_filename.c_str());
 		return;
 	}
-	for (size_t s = 0; s < node_num; ++s) {
-		for (size_t d = 0; d < node_num; ++d) {
-			fout.write((char *)&dist_array[s][d], sizeof(uchar));
-		}
+
+	for (size_t s = 0; s < node_num - 1; ++s) {
+		fout.write((char *)Distinations[s], sizeof(uchar) * (node_num - s - 1));
 	}
+
 	fout.close();
 }
 
@@ -94,18 +94,17 @@ Distance::Distance(size_t _dim) {
 	bin_filename = dir + to_string(dim) + ".bin";
 
 	// dist_arrayを使えるようにする
-	init_dist_array();
+	init_Distinations();
 }
 
 // デストラクタ
 Distance::~Distance() {
 	// length_arrayの解放
-	if (dist_array != NULL) {
-		for (size_t i = 0; i < node_num; i++)
-		{
-			delete[] dist_array[i];
+	if (Distinations != NULL) {
+		for (size_t s = 0; s < node_num - 1; s++) {
+			delete[] Distinations[s];
 		}
-		delete[] dist_array;
+		delete[] Distinations;
 	}
 }
 
@@ -113,14 +112,22 @@ Distance::~Distance() {
 void Distance::show_dist_array() {
 	for (size_t s = 0; s < node_num; ++s) {
 		for (size_t d = 0; d < node_num; ++d) {
-
-			cout << static_cast<int>(dist_array[s][d]) << ' ';
+			cout << get_distance(s, d) << ' ';
 		}
 		cout << endl;
 	}
 }
 
 // 2頂点間の距離を表から返す
-uchar Distance::get_distance(size_t s, size_t d) {
-	return dist_array[s][d];
+size_t Distance::get_distance(size_t s, size_t d) {
+	int dist;
+	if (s > d) {
+		return Distinations[d][s - d - 1];
+	}
+	else if (s < d){
+		return Distinations[s][d - s - 1];
+	}
+	else {
+		return 0;
+	}
 }

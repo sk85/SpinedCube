@@ -205,12 +205,19 @@ public:
 
 int main() {
 	// 前方隣接頂点数に関する実験
-	size_t max_dim = 15, l;
+	//size_t max_dim = 16;
+	//Distance len(16);
 
+	std::ofstream ofs("test.txt");
+
+
+
+
+	/*
 	for (size_t dim = 2; dim <= max_dim; dim++)
 	{
 		Distance len(dim);
-	}
+	}*/
 }
 
 
@@ -234,14 +241,50 @@ char* str_to_char(string str) {
 	return ch;
 }
 
-
-
 //現在日時を取得
 string getTime() {
 	SYSTEMTIME t;
 	GetLocalTime(&t);
 
 	return to_string(t.wMonth) + "/" + to_string(t.wDay) + " " + to_string(t.wHour) + ":" + to_string(t.wMinute) + ":" + to_string(t.wSecond);
+}
+
+
+
+// 提案手法を用いて平均距離を計算
+///// 同じ頂点はやらないので2^n(2^n - 1)通り
+void test0(size_t max_dim) {
+	std::ofstream ofs("test.txt");
+
+	for (size_t dim = 2; dim <= max_dim; dim++)
+	{
+		cout << "n = " << dim << endl;
+		ofs << "n = " << dim << endl;
+		cout << getTime() << endl;
+
+		double node_num = pow(2, dim);
+		double combination_count = node_num * (node_num - 1) / 2;
+		double distance = 0;
+		size_t diam = 0;
+		for (size_t s = 0; s < node_num; s++)
+		{
+			for (size_t d = s + 1; d < node_num; d++)
+			{
+				int tmp = SPR::GetMinimalExpansion(s, d, static_cast<int>(dim)).GetCount();
+				if (tmp > diam) diam = tmp;
+				distance += tmp / combination_count;
+			}
+		}
+		cout << "直径：" << diam << endl;
+		cout << "経路：" << distance << endl;
+		cout << endl;
+
+		ofs << "直径：" << diam << endl;
+		ofs << "経路：" << distance << endl;
+		ofs << endl;
+	}
+
+	ofs.close();
 }
 
 
