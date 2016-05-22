@@ -204,20 +204,12 @@ public:
 };
 
 int main() {
-	// 前方隣接頂点数に関する実験
-	//size_t max_dim = 16;
-	//Distance len(16);
 
-	std::ofstream ofs("test.txt");
-
-
-
-
-	/*
+	size_t max_dim = 15;
 	for (size_t dim = 2; dim <= max_dim; dim++)
 	{
 		Distance len(dim);
-	}*/
+	}
 }
 
 

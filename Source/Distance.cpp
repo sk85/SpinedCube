@@ -1,78 +1,71 @@
 #include "..\Header\Distance.h"
 
 
-// dist_arrayのセットアップ本体
-void Distance::init_Distinations() {
+// 全体の初期化
+void Distance::init_Distance_array() {
 	// 領域の確保
-	
-	Distinations = new uchar*[node_num - 1];
-	for (size_t s = 0; s < node_num - 1; s++){
-		try {
-			Distinations[s] = new uchar[node_num - 1 - s];
-		}
-		catch (const std::bad_alloc& e) {
-			cout << (node_num - 1 - s) << e.what() << endl;
-			int l;
-			cin >> l;
-		}
+	Distance_array = new uchar*[node_num - 1];
+	for (size_t s = 0; s < node_num - 1; s++) {
+		Distance_array[s] = new uchar[node_num - 1 - s];
 	}
 
 	// 初期化
-	if (PathFileExists(str_to_char(bin_filename))) {
+	if (PathFileExists(str_to_char(file_path))) {
 		// 既にファイル計算結果を保存済みなら読み込み
-		cout << "n=" << dim << "の距離をファイルから読み込みます...";
-		load_file();
+		cout << "n=" << dimension << "の距離をファイルから読み込みます...";
+		read_bin();
 		cout << "ok" << endl;
 	}
 	else {
 		// 無ければ計算
-		cout << "n=" << dim << "の距離を計算します\t" << getTime() << "...";
-		calc_distination();
+		cout << "n=" << dimension << "の距離を計算します\t" << getTime() << "...";
+		calc_distance();
 		cout << "ok" << endl;
 		// ついでにファイルに保存しておく
-		cout << "n=" << dim << "の距離をファイル保存します\t" << getTime() << "...";
-		save_binary();
+		cout << "n=" << dimension << "の距離をファイル保存します\t" << getTime() << "...";
+		write_bin();
 		cout << "ok" << endl;
 	}
 }
 
 // 距離をファイルから読み込み
-void Distance::load_file() {
-	ifstream fin(bin_filename, ios::in | ios::binary);
+void Distance::read_bin() {
+	ifstream fin(file_path, ios::in | ios::binary);
 
 	if (!fin) {
-		printf_s("%sが開けません\n", bin_filename.c_str());
+		cout << file_path << "が開けません" << endl;
 		return;
 	}
 	
 	for (size_t s = 0; s < node_num - 1; ++s) {
-		fin.read((char *)Distinations[s], sizeof(uchar) * (node_num - s - 1));
+		fin.read((char *)Distance_array[s], sizeof(uchar) * (node_num - s - 1));
 	}
 
 	fin.close();  //ファイルを閉じる
 }
 
 // 距離を計算
-void Distance::calc_distination() {
+void Distance::calc_distance() {
 	for (size_t s = 0; s < node_num - 1; ++s) {
-		for (size_t d = s + 1; d < node_num; ++d) {
-			int tmp = SPR::GetMinimalExpansion(s, d, static_cast<int>(dim)).GetCount();
-			Distinations[s][d - s - 1] = tmp;
+		size_t row_size = node_num - s - 1;
+		for (size_t d = 0; d < row_size; ++d) {
+			uchar tmp = SPR::GetMinimalExpansion(s, d + s + 1, dimension).GetCount();
+			Distance_array[s][d] = tmp;
 		}
 	}
 }
 
 // ファイルに保存
-void Distance::save_binary() {
-	ofstream fout(bin_filename, ios::out | ios::binary | ios::trunc);
+void Distance::write_bin() {
+	ofstream fout(file_path, ios::out | ios::binary | ios::trunc);
 
 	if (!fout) {
-		printf_s("%sが開けません\n", bin_filename.c_str());
+		cout << file_path << "が開けません" << endl;
 		return;
 	}
 
 	for (size_t s = 0; s < node_num - 1; ++s) {
-		fout.write((char *)Distinations[s], sizeof(uchar) * (node_num - s - 1));
+		fout.write((char *)Distance_array[s], sizeof(uchar) * (node_num - s - 1));
 	}
 
 	fout.close();
@@ -80,31 +73,32 @@ void Distance::save_binary() {
 
 // コンストラクタ
 Distance::Distance(size_t _dim) {
-	dim = _dim;
-	node_num = static_cast<int>(pow(2, dim));
-	diameter = static_cast<int>(ceil((double)dim / 3) + 3);
+	dimension = _dim;
+	node_num = 1 << dimension;
+	diameter = static_cast<int>(ceil((double)dimension / 3) + 3);
 
-	// フォルダ作成
+	// フォルダ作成(無ければ)
 	string dir = "DistBin\\";
 	char *dir_c = str_to_char(dir);
 	if (!PathIsDirectoryEmpty(dir_c)) {
 		CreateDirectory(dir_c, NULL);
 	}
 
-	bin_filename = dir + to_string(dim) + ".bin";
+	file_path = dir + to_string(dimension) + ".bin";
 
 	// dist_arrayを使えるようにする
-	init_Distinations();
+	init_Distance_array();
 }
 
 // デストラクタ
 Distance::~Distance() {
 	// length_arrayの解放
-	if (Distinations != NULL) {
-		for (size_t s = 0; s < node_num - 1; s++) {
-			delete[] Distinations[s];
+	if (Distance_array != NULL) {
+		for (size_t s = 0; s < node_num - 1; s++)
+		{
+			delete[] Distance_array[s];
 		}
-		delete[] Distinations;
+		delete[] Distance_array;
 	}
 }
 
@@ -119,13 +113,12 @@ void Distance::show_dist_array() {
 }
 
 // 2頂点間の距離を表から返す
-size_t Distance::get_distance(size_t s, size_t d) {
-	int dist;
+uchar Distance::get_distance(size_t s, size_t d) {
 	if (s > d) {
-		return Distinations[d][s - d - 1];
+		return Distance_array[d][s - d - 1];
 	}
 	else if (s < d){
-		return Distinations[s][d - s - 1];
+		return Distance_array[s][d - s - 1];
 	}
 	else {
 		return 0;

@@ -16,23 +16,22 @@ using namespace std;
 
 class Distance {
 private:
-	size_t dim;
+	size_t dimension;
 	size_t diameter;
 	size_t node_num;
 
-	uchar **dist_array;
-	string bin_filename;
+	uchar **Distance_array;
+	string file_path;
 
 	/*******************************
 		dist_arrayのセットアップ
 	 *******************************/
-	void init_dist_array();	// 本体
+	void init_Distance_array();	// 本体
 
-	void load_file();	// ファイルから読み込み
+	void calc_distance();	// 距離を計算
 
-	void calc_distination();	// 距離を計算
-
-	void save_binary();	// ファイルに保存
+	void read_bin();	// ファイルから読み込み
+	void write_bin();	// ファイルに保存
 
 
 public:
