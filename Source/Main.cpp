@@ -17,6 +17,7 @@ using namespace std;
 void test1();
 void calc_length_ave1();
 void calc_length_ave2();
+size_t get_neighbor(size_t s, int index);
 
 class Neighbor {
 private:
@@ -205,11 +206,82 @@ public:
 
 int main() {
 
-	size_t max_dim = 15;
+	size_t max_dim = 13;
+
+
 	for (size_t dim = 2; dim <= max_dim; dim++)
 	{
 		Distance len(dim);
+		size_t node_num = 1 << dim;
+		
+		// 前方隣接頂点数を保存する領域を確保
+		uchar** pref = new uchar*[node_num];
+		for (size_t i = 0; i < node_num; i++)
+		{
+			pref[i] = new uchar[node_num];
+		}
+
+		// 前方隣接超点数を計算
+		for (size_t s = 0; s < node_num; s++)
+		{
+			for (size_t d = 0; d < node_num; d++)
+			{
+				pref[s][d] = 0;
+				size_t distance = len.get_distance(s, d);
+				for (size_t i = 0; i < dim; i++)
+				{
+					size_t n = len.get_distance(d, get_neighbor(s, i));
+					if (n < distance) {
+						pref[s][d]++;
+					}
+				}
+			}
+		}
+
+		// csvに保存
+		string filename = "prefcsv\\" + to_string(dim) + ".csv";
+		ofstream fout(filename, ios::out | ios::trunc);
+		if (!fout) {
+			cout << filename << "が開けません" << endl;
+			return -1;
+		}
+		for (size_t s = 0; s < node_num; s++)
+		{
+			for (size_t d = 0; d < node_num; d++)
+			{
+				fout << (unsigned int)pref[s][d] << ',';
+				//fout << (unsigned int)len.get_distance(s, d) << ',';
+			}
+			fout << endl;
+		}
+		fout.close();
+
+		// 後処理
+		for (size_t i = 0; i < node_num; i++)
+		{
+			delete[] pref[i];
+		}
+		delete[] pref;
 	}
+	cout << "fin" << endl;
+	cin >> max_dim;
+}
+
+// SQの隣接頂点を返す
+size_t get_neighbor(size_t s, int index) {
+	size_t d;
+	if (index > 3) {
+		size_t type = s & 0b11;
+		d =  (0b100 | type) << (index - 2);
+	}
+	else if (index > 1){
+		size_t type = s & 1;
+		d = (0b10 | type) << (index - 1);
+	}
+	else {
+		d = 1 << index;
+	}
+	return d ^ s;
 }
 
 
