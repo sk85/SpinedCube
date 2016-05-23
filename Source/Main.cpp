@@ -207,6 +207,7 @@ public:
 int main() {
 
 	size_t max_dim = 13;
+	size_t max_distance = 9;
 
 
 	for (size_t dim = 2; dim <= max_dim; dim++)
@@ -214,42 +215,49 @@ int main() {
 		Distance len(dim);
 		size_t node_num = 1 << dim;
 		
-		// 前方隣接頂点数を保存する領域を確保
-		uchar** pref = new uchar*[node_num];
+		// 領域を確保
+		uchar** c_array = new uchar*[node_num];
 		for (size_t i = 0; i < node_num; i++)
 		{
-			pref[i] = new uchar[node_num];
+			c_array[i] = new uchar[max_distance];
+			for (size_t j = 0; j < max_distance; j++)
+			{
+				c_array[i][j] = 0;
+			}
 		}
 
-		// 前方隣接超点数を計算
+		// 前方隣接頂点数を計算
 		for (size_t s = 0; s < node_num; s++)
 		{
 			for (size_t d = 0; d < node_num; d++)
 			{
-				pref[s][d] = 0;
+				int count_pref = 0;
 				size_t distance = len.get_distance(s, d);
 				for (size_t i = 0; i < dim; i++)
 				{
-					size_t n = len.get_distance(d, get_neighbor(s, i));
-					if (n < distance) {
-						pref[s][d]++;
+					size_t n_distance = len.get_distance(d, get_neighbor(s, i));
+					if (n_distance < distance) {
+						count_pref++;
 					}
 				}
+				c_array[s][distance] += count_pref;
 			}
 		}
 
 		// csvに保存
-		string filename = "prefcsv\\" + to_string(dim) + ".csv";
+		string filename = "csv_new\\" + to_string(dim) + ".csv";
 		ofstream fout(filename, ios::out | ios::trunc);
 		if (!fout) {
 			cout << filename << "が開けません" << endl;
+			int i;
+			cin >> i;
 			return -1;
 		}
 		for (size_t s = 0; s < node_num; s++)
 		{
-			for (size_t d = 0; d < node_num; d++)
+			for (size_t d = 0; d < max_distance; d++)
 			{
-				fout << (unsigned int)pref[s][d] << ',';
+				fout << (unsigned int)c_array[s][d] << ',';
 				//fout << (unsigned int)len.get_distance(s, d) << ',';
 			}
 			fout << endl;
@@ -259,9 +267,9 @@ int main() {
 		// 後処理
 		for (size_t i = 0; i < node_num; i++)
 		{
-			delete[] pref[i];
+			delete[] c_array[i];
 		}
-		delete[] pref;
+		delete[] c_array;
 	}
 	cout << "fin" << endl;
 	cin >> max_dim;
@@ -383,7 +391,66 @@ void test1() {
 
 
 
+// 前方隣接頂点数の計算と保存
+void pref_neighbor(size_t max_dim) {
+	for (size_t dim = 2; dim <= max_dim; dim++)
+	{
+		Distance len(dim);
+		size_t node_num = 1 << dim;
+		size_t diameter = ceil(static_cast<double>(dim) / 3) + 3;
 
+		// 前方隣接頂点数を保存する領域を確保
+		uchar** pref = new uchar*[node_num];
+		for (size_t i = 0; i < node_num; i++)
+		{
+			pref[i] = new uchar[node_num];
+		}
+
+		// 前方隣接頂点数を計算
+		for (size_t s = 0; s < node_num; s++)
+		{
+			for (size_t d = 0; d < node_num; d++)
+			{
+				pref[s][d] = 0;
+				size_t distance = len.get_distance(s, d);
+				for (size_t i = 0; i < dim; i++)
+				{
+					size_t n = len.get_distance(d, get_neighbor(s, i));
+					if (n < distance) {
+						pref[s][d]++;
+					}
+				}
+			}
+		}
+
+		// csvに保存
+		string filename = "csv_new\\" + to_string(dim) + ".csv";
+		ofstream fout(filename, ios::out | ios::trunc);
+		if (!fout) {
+			cout << filename << "が開けません" << endl;
+			int i;
+			cin >> i;
+			return;
+		}
+		for (size_t s = 0; s < node_num; s++)
+		{
+			for (size_t d = 0; d < node_num; d++)
+			{
+				fout << (unsigned int)pref[s][d] << ',';
+				//fout << (unsigned int)len.get_distance(s, d) << ',';
+			}
+			fout << endl;
+		}
+		fout.close();
+
+		// 後処理
+		for (size_t i = 0; i < node_num; i++)
+		{
+			delete[] pref[i];
+		}
+		delete[] pref;
+	}
+}
 
 // 平均距離の計算（全探索版）
 void calc_length_ave1() {
