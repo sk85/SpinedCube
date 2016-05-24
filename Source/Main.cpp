@@ -206,10 +206,93 @@ public:
 
 int main() {
 
+	Expansion exp = SPR::GetMinimalExpansion(0b01, 311, 13);
+	exp.Show();
+	int i;
+	cin >> i;
+	/*
+	Distance d(13);
+	size_t dis;
+	size_t nei = get_neighbor(0, 8);
+	size_t n_dis = d.get_distance(nei, 311);
+	cout << Node(311) << ' ' << (size_t)d.get_distance(0, 311) << endl;
+	cout << Node(nei) << ' ' << (size_t)d.get_distance(nei, 311) << endl;
+	cin >> dis;*/
+
+
+	// 実験の範囲を定める
+	size_t min_dim = 13;
 	size_t max_dim = 13;
-	size_t max_distance = 9;
+
+	// 表の大きさを定める
+	size_t ary_coulmn = 4;
+	size_t ary_row = 14;
+
+	for (size_t dim = min_dim; dim <= max_dim; dim++)
+	{
+		// もろもろ初期化
+		Distance dist(dim);
+		size_t node_num = 1 << dim;
+
+		// 表の宣言・領域確保・初期化
+		uchar **ary = new uchar*[ary_coulmn];
+		for (size_t i = 0; i < ary_coulmn; i++)
+		{
+			ary[i] = new uchar[ary_row];
+			for (size_t j = 0; j < ary_row; j++)
+			{
+				ary[i][j] = 0;
+			}
+		}
+
+		// 計算とか
+		for (size_t d = 0; d < node_num; d++)
+		{
+			size_t distance = dist.get_distance(0, d);
+			size_t pref_count = 0;
+			for (size_t i = 0; i < dim; i++)
+			{
+				size_t n_distance = dist.get_distance(get_neighbor(0, i), d);
+				if (n_distance < distance) {
+					pref_count++;
+					
+				}
+			}
+			if (pref_count == 0) {
+				cout << d << "," << distance << endl;
+			}
+			ary[d & 0b11][pref_count]++;
+		}
+
+		// csvに保存
+		string filename = "csv_new\\" + to_string(dim) + ".csv";
+		ofstream fout(filename, ios::out | ios::trunc);
+		if (!fout) {
+			cout << filename << "が開けません" << endl;
+			return -1;
+		}
+		for (size_t i = 0; i < ary_coulmn; i++)
+		{
+			for (size_t j = 0; j < ary_row; j++)
+			{
+				fout << (unsigned int)ary[i][j] << ',';
+			}
+			fout << endl;
+		}
+		fout.close();
+
+		// 表の後始末
+		for (size_t i = 0; i < ary_coulmn; i++)
+		{
+			delete[] ary[i];
+		}
+		delete[] ary;
+	}
+	
 
 
+
+#ifdef TEST
 	for (size_t dim = 2; dim <= max_dim; dim++)
 	{
 		Distance len(dim);
@@ -271,6 +354,7 @@ int main() {
 		}
 		delete[] c_array;
 	}
+#endif
 	cout << "fin" << endl;
 	cin >> max_dim;
 }

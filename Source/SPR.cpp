@@ -184,24 +184,24 @@ Expansion SPR::DoubleType_0111(Node s, Node d, int n) {
 	Expansion exp;
 	Node c = s ^ d;
 
-	// 第31ビットが1の場合
+	// 第n-1ビットが1の場合
 	Node bin;
-	if (c[BIT_LENGTH - 1]) {
+	if (c[n - 1]) {
 		Expansion expA, expB;
-		if (c[BIT_LENGTH - 2]) {	// 11c...の場合
-			expA += GetBin(0b11, BIT_LENGTH - 1);
-			expB += GetBin(0b01, BIT_LENGTH - 1);
-			c ^= GetBin(0b11, BIT_LENGTH - 1);
+		if (c[n - 2]) {	// 11c...の場合
+			expA += GetBin(0b11, n - 1);
+			expB += GetBin(0b01, n - 1);
+			c ^= GetBin(0b11, n - 1);
 		}
 		else {						// 10c...の場合
-			expA += GetBin(0b01, BIT_LENGTH - 1);
-			expB += GetBin(0b11, BIT_LENGTH - 1);
-			c ^= GetBin(0b01, BIT_LENGTH - 1);
+			expA += GetBin(0b01, n - 1);
+			expB += GetBin(0b11, n - 1);
+			c ^= GetBin(0b01, n - 1);
 		}
-		c = DoubleType_0111_Sub1(c, BIT_LENGTH - 3, expA, expB, &exp);
+		c = DoubleType_0111_Sub1(c, n - 3, expA, expB, &exp);
 	}
 
-	// 第30～5ビットまで
+	// 第n-2～5ビットまで
 	int index = n - 2;
 	while (index > 4) {
 		if (c[index]) {
