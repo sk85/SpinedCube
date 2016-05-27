@@ -5,6 +5,7 @@
 #include <iomanip>
 #include <atltime.h>
 #include <direct.h>
+#include <queue>
 
 #include "..\Header\Common.h"
 #include "..\Header\Node.h"
@@ -204,20 +205,169 @@ public:
 	}
 };
 
-int main() {
 
-	Expansion exp = SPR::GetMinimalExpansion(0b01, 311, 13);
-	exp.Show();
-	int i;
-	cin >> i;
-	/*
-	Distance d(13);
-	size_t dis;
-	size_t nei = get_neighbor(0, 8);
-	size_t n_dis = d.get_distance(nei, 311);
-	cout << Node(311) << ' ' << (size_t)d.get_distance(0, 311) << endl;
-	cout << Node(nei) << ' ' << (size_t)d.get_distance(nei, 311) << endl;
-	cin >> dis;*/
+
+
+// キューブ系のグラフ用の基本クラス
+/// あくまで基本クラスなので純粋仮想関数はすべてオーバーライドすること
+/// その他の仮想関数もだいたい計算量が大きいので、できればオーバーライドすべし
+class SGraph {
+public:
+	int Dimension;
+	int Diameter;
+	ulong NodeNum;
+
+	// 直径のアクセサ
+	void SetDimension(int _dim) {
+		this->Dimension = _dim;
+		this->Diameter = CalcDiameter();
+		this->NodeNum = static_cast<ulong>(1) << this->Dimension;
+	}
+	int GetDimension() {
+		return this->Dimension;
+	}
+
+	// 直径を計算
+	// 必ずオーバーライドすること
+	virtual int CalcDiameter() = 0;
+
+	// 距離を計算
+	// 適宜オーバーライドすること
+	virtual int CalcDistance(ulong s, ulong d) {
+		int* distanceTable = CalcDistanceTableWPS(s);
+		ulong distance = distanceTable[d];
+		delete[] distanceTable;
+		return distance;
+	}
+
+	// 隣接頂点を返す
+	// 必ずオーバーライドすること
+	virtual ulong GetNeighbor(ulong s, int index) = 0;
+
+	// 頂点sからの距離の表を計算(幅優先で全探索)
+	int* CalcDistanceTableWPS(ulong s) {
+
+		// 距離の表の準備
+		int *distance = new int[NodeNum];
+		for (size_t i = 0; i < NodeNum; i++)
+		{
+			distance[i] = 100000;
+		}
+		// キューの準備
+		std::queue<ulong> que;
+
+		// 探索本体
+		que.push(s);	// 始点をキューに入れる
+		distance[s] = 0;
+		while (!que.empty()) {
+			ulong current = que.front();	// キューから1つ取り出してcurrentとする
+			que.pop();
+			for (size_t i = 0; i < Dimension; i++)
+			{
+				ulong neighbor = GetNeighbor(current, i);
+				if (distance[neighbor] > distance[current]) {
+					distance[neighbor] = distance[current] + 1;
+					que.push(neighbor);
+				}
+			}
+		}
+
+		return distance;
+	}
+};
+
+
+
+class SQ : public SGraph {
+public:
+	int CalcDiameter() {
+		return ceil(static_cast<double>(this->Dimension) / 3) + 3;
+	}
+
+	ulong GetNeighbor(ulong s, int index) {
+		size_t d;
+		if (index > 3) {
+			size_t type = s & 0b11;
+			d = (0b100 | type) << (index - 2);
+		}
+		else if (index > 1) {
+			size_t type = s & 1;
+			d = (0b10 | type) << (index - 1);
+		}
+		else {
+			d = 1 << index;
+		}
+		return d ^ s;
+	}
+
+	int CalcDistance(ulong s, ulong d) {
+		return SPR::GetMinimalExpansion(s, d, this->Dimension).GetCount();
+	}
+};
+
+namespace sample {
+	// CalcDistanceが正しいかどうかチェック
+	void check_CalcDistance(const int minDim, const int MaxDim) {
+		/// nがminDimからmaxDimにおいて、CalcDistanceの計算結果を全探索のものと比較
+		/// SQ用なので、各タイプ1頂点ずつチェック
+
+		SQ sq;
+		for (size_t dim = minDim; dim <= MaxDim; dim++)
+		{
+			cout << "n = " << dim << " を計算中..."<< endl;
+			sq.SetDimension(dim);
+			for (size_t i = 0; i < 4; i++)
+			{
+				int* ary = sq.CalcDistanceTableWPS(i);
+				for (size_t d = 0; d < sq.NodeNum; d++)
+				{
+					int dist = SPR::GetMinimalExpansion(i, d, dim).GetCount();
+					if (ary[d] != dist) {
+						printf_s("d(%d, %d) CalcDist=%d, WPS=%d\n", i, d, dist, ary[d]);
+					}
+				}
+			}
+			cout << endl;
+			
+		}
+	}
+}
+
+int main() {
+	
+	//　１０まではおｋ
+	sample::check_CalcDistance(11, 11);
+
+	ulong s = 1;
+	ulong d = 1171;
+	int dim = 11;
+	cout << "s = " << Node(s) << endl;
+	cout << "d = " << Node(d) << endl;
+	cout << Node(s ^ d) << endl << endl;
+	//SPR::TripleType_000111(s, d, dim).Show();
+	SPR::GetMinimalExpansion(s, d, dim).Show();
+
+
+	
+	int k;
+	cin >> k;
+
+	
+
+
+	return 0;
+
+	SPR::GetMinimalExpansion(1, 270, 13).Show();
+
+	cout << endl;
+
+	SPR::GetMinimalExpansion(0b1101, 270, 13).Show();
+
+
+
+	cin >> k;
+	return 0;
+	
 
 
 	// 実験の範囲を定める
@@ -246,13 +396,14 @@ int main() {
 		}
 
 		// 計算とか
+		size_t from = 1;
 		for (size_t d = 0; d < node_num; d++)
 		{
-			size_t distance = dist.get_distance(0, d);
+			size_t distance = dist.get_distance(from, d);
 			size_t pref_count = 0;
 			for (size_t i = 0; i < dim; i++)
 			{
-				size_t n_distance = dist.get_distance(get_neighbor(0, i), d);
+				size_t n_distance = dist.get_distance(get_neighbor(from, i), d);
 				if (n_distance < distance) {
 					pref_count++;
 					
@@ -265,7 +416,7 @@ int main() {
 		}
 
 		// csvに保存
-		string filename = "csv_new\\" + to_string(dim) + ".csv";
+		string filename = "csv_new\\" + to_string(dim) + "_" + to_string(from) + ".csv";
 		ofstream fout(filename, ios::out | ios::trunc);
 		if (!fout) {
 			cout << filename << "が開けません" << endl;

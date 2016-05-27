@@ -5,6 +5,7 @@
 
 class SPR {
 private:
+public:
 	static Expansion SingleType(Node s, Node d, int n);
 	static Expansion DoubleType_0001(Node s, Node d, int n);
 	static Expansion DoubleType_0010(Node s, Node d, int n);
@@ -26,7 +27,9 @@ private:
 	static Node DoubleType_1011_Sub2
 		(Node c, int index, Expansion expA, Expansion expB, Expansion *exp);
 
-	static Node TripleType_000111_Sub
+	static Node TripleType_000111_Sub1
+		(Node c, int index, Expansion expA, Expansion expB, Expansion *exp);
+	static Node TripleType_000111_Sub2
 		(Node c, int index, Expansion expA, Expansion expB, Expansion *exp);
 
 	static Node TripleType_011011_Sub
@@ -34,7 +37,6 @@ private:
 
 	static Node GetBin(ulong bin, int index);
 
-public:
 	static Expansion GetMinimalExpansion(Node s, Node d, int n);
 };
 

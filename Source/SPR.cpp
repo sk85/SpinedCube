@@ -186,7 +186,7 @@ Expansion SPR::DoubleType_0111(Node s, Node d, int n) {
 
 	// 第n-1ビットが1の場合
 	Node bin;
-	if (c[n - 1]) {
+	if (n > 4 && c[n - 1]) {
 		Expansion expA, expB;
 		if (c[n - 2]) {	// 11c...の場合
 			expA += GetBin(0b11, n - 1);
@@ -231,6 +231,11 @@ Expansion SPR::DoubleType_0111(Node s, Node d, int n) {
 				c = DoubleType_0111_Sub2(c, index - 4, expX, expY, expZ, &exp);
 			}
 		}
+		/*
+		cout << index << endl << c << endl;
+		cout << "-----------------" << endl;
+		(exp).Show();
+		cout << "-----------------" << endl;*/
 		--index;
 	}
 
@@ -249,6 +254,7 @@ Expansion SPR::DoubleType_0111(Node s, Node d, int n) {
 		exp += tmp;
 		c.Pop(tmp);
 	}
+
 
 	// 第(2)1～0ビット
 	exp += c[2] ? 0b0110 : 0b0010;	// 第2ビットが1なら0110、0なら0010
@@ -351,8 +357,19 @@ Node SPR::DoubleType_0111_Sub1(Node c, int index, Expansion expA, Expansion expB
 
 // サブルーチン2
 Node SPR::DoubleType_0111_Sub2(Node c, int index, Expansion expA, Expansion expB, Expansion expC, Expansion *exp) {
-	// 長さが6未満ならばa <= 1aが言える
-	if (index < 5) {
+	// 長さが5未満ならば一般的な処理は不可
+	// よって、ここだけ個々に処理
+	if (index == 3) {
+		if (c[3]) {
+			c.Pop(1, 3);
+			*exp += expB;
+		}
+		else {
+			*exp += expA;
+		}
+		return c;
+	}
+	else if (index < 3) {
 		*exp += expA;
 		return c;
 	}
@@ -377,7 +394,7 @@ Node SPR::DoubleType_0111_Sub2(Node c, int index, Expansion expA, Expansion expB
 		}
 		else {					// abcd=...10cd...の場合
 			c.Pop(0b1, index);
-			DoubleType_0111_Sub1(c, index - 1, expB, expA, exp);
+			c = DoubleType_0111_Sub1(c, index - 1, expB, expA, exp);
 		}
 	}
 	else {
@@ -401,6 +418,7 @@ Node SPR::DoubleType_0111_Sub2(Node c, int index, Expansion expA, Expansion expB
 			DoubleType_0111_Sub1(c, index - 1, expA, expB, exp);
 		}
 	}
+
 	return c;
 }
 
@@ -453,11 +471,9 @@ Expansion SPR::DoubleType_1011(Node s, Node d, int n) {
 	}
 
 	// 第3～2ビット
-	if (c[3]) {
-		exp += 0b1000;
-	}
-	if (c[2]) {
-		exp += 0b0100;
+	ulong tmp = c.GetAddr() & 0b1100;
+	if (tmp) {
+		exp += tmp;
 	}
 
 	// 第1～0ビット
@@ -565,7 +581,10 @@ Expansion SPR::TripleType_000110(Node s, Node d, int n) {
 	}
 
 	// 第3～2ビット
-	exp += c.Subsequence(3, 2) << 2;
+	int tmp = c.GetAddr() & 0b1100;
+	if (tmp) {
+		exp += tmp;
+	}
 
 	// 第1～0ビット
 	exp += 0b0010;
@@ -576,7 +595,10 @@ Expansion SPR::TripleType_000110(Node s, Node d, int n) {
 
 
 
-/*	000111の場合	*/
+/*	000111の場合	
+DoubleType_000111			本体
+DoubleType_000111_Sub1	a/a^
+DoubleType_000111_Sub2	a/10a	*/
 // main
 Expansion SPR::TripleType_000111(Node s, Node d, int n) {
 	Expansion exp;
@@ -585,32 +607,26 @@ Expansion SPR::TripleType_000111(Node s, Node d, int n) {
 	// 第31～4ビット
 	int index = n - 1;
 	while (index >= 4) {
-		ulong tmp = c.Subsequence(index, 3);
-		if (tmp == 0b100) {		// abcd... = 100d...
-			Node bin = GetBin(0b00, index);
-			Expansion expX = bin;
-			Expansion expY = GetBin(0b01, index);
-			c.Pop(bin);
-			c = TripleType_000111_Sub(c, index - 3, expX, expY, &exp);
-		}
-		else if (tmp == 0b101) {// abcd... = 101d...
-			Node bin = GetBin(0b01, index);
-			Expansion expX = bin;
-			Expansion expY = GetBin(0b00, index);
-			c.Pop(bin);
-			c = TripleType_000111_Sub(c, index - 3, expX, expY, &exp);
-		}
-		else if (tmp == 0b110) {// abcd... = 110d...
-			Node bin = GetBin(0b11, index);
-			Expansion expX = bin;
-			Expansion expY = GetBin(0b01, index);
-			c.Pop(bin);
-			c = TripleType_000111_Sub(c, index - 2, expX, expY, &exp);
-		}
-		else if (tmp == 0b111) {// abcd... = 111d...
-			Node bin = GetBin(0b11, index);
-			c.Pop(bin);
-			exp += bin;
+		if (c[index]) {
+			if (c[index - 1]) {
+				if (c[index - 2]) {	// abcd... = 111d...
+					Node bin = GetBin(0b11, index);
+					c.Pop(bin);
+					exp += bin;
+				}
+				else {	// abcd... = 110d...
+					Expansion expX = GetBin(0b11, index);
+					Expansion expY = GetBin(0b00, index);
+					c.Pop(0b11, index);
+					c = TripleType_000111_Sub2(c, index - 3, expX, expY, &exp);
+				}
+			}
+			else {	// abcd... = 10cd...
+				Expansion expX = GetBin(0b00, index);
+				Expansion expY = GetBin(0b01, index);
+				c.Pop(1, index);
+				c = TripleType_000111_Sub1(c, index - 2, expX, expY, &exp);
+			}
 		}
 		--index;
 	}
@@ -632,21 +648,76 @@ Expansion SPR::TripleType_000111(Node s, Node d, int n) {
 	return exp;
 }
 
-// Subroutin
-Node SPR::TripleType_000111_Sub(Node c, int index, Expansion expA, Expansion expB, Expansion *exp) {
-	// if c is shorter than 5 (index is smaller than 4) then a <= 1a
-	if (index <= 3) {
-		*exp += expA;
-		return c;
-	}
-
-	// if c is longer than 4 (index is bigger than 3)
-	if (c.Subsequence(index, 3) == 0b110) {	// abcd... = 110d...
-		*exp += expB;
-		c.Pop(0b01, index + 1);
+// Subroutin 1
+Node SPR::TripleType_000111_Sub1(Node c, int index, Expansion expA, Expansion expB, Expansion *exp) {
+	if (index <= 4) {
+		if (c[index]) {
+			*exp += expB;
+			c.Pop(1, index);
+		}
+		else {
+			*exp += expA;
+		}
 	}
 	else {
-		*exp += expA;	// abcd... = 0bcd..., 10cd..., 111d...
+		if (c[index - 1]) {
+			if (c[index - 2]) {	// abcd... = a11d...
+				if (c[index]) {
+					Expansion expX = expA + GetBin(0b11, index);
+					Expansion expY = expB + GetBin(0b11, index - 1);
+					c.Pop(0b111, index);
+					c = TripleType_000111_Sub1(c, index - 3, expX, expY, exp);
+				}
+				else {
+					Expansion expX = expB + GetBin(0b11, index);
+					Expansion expY = expA + GetBin(0b11, index - 1);
+					c.Pop(0b11, index - 1);
+					c = TripleType_000111_Sub1(c, index - 3, expX, expY, exp);
+				}
+			}
+			else {	// abcd... = a10d...
+				if (c[index]) {
+					*exp += expB;
+					c.Pop(1, index);
+				}
+				else {
+					*exp += expA;
+				}
+			}
+		}
+		else {	// abcd... = a0cd...
+			if (c[index]) {
+				*exp += expB;
+				c.Pop(1, index);
+			}
+			else {
+				*exp += expA;
+			}
+		}
+	}
+	return c;
+}
+
+// Subroutin 2
+Node SPR::TripleType_000111_Sub2(Node c, int index, Expansion expA, Expansion expB, Expansion *exp) {
+	if (index <= 1) {
+		c.Pop(1, index + 1);
+		*exp += expA;
+	}
+	else if (index == 2) {
+		*exp += expA + Node(0b1000);
+	}
+	else {
+		if (c[index]) {	// a = 1
+			Expansion expX = expB + GetBin(0b01, index + 2);
+			Expansion expY = expA + GetBin(0b11, index + 1);
+			c.Pop(1, index);
+			c = TripleType_000111_Sub1(c, index - 1, expX, expY, exp);
+		}
+		else {	// a = 0
+			c.Pop(1, index + 1);
+			*exp += expA;
+		}
 	}
 
 	return c;
@@ -683,14 +754,10 @@ Expansion SPR::TripleType_001011(Node s, Node d, int n) {
 		--index;
 	}
 
-	// 第3ビット
-	if (c[3]) {
-		exp += 0b1000;
-	}
-
-	// 第2ビット
-	if (c[2]) {
-		exp += 0b0100;
+	// 第3~2ビット
+	ulong tmp = c.GetAddr() & 0b1100;
+	if (tmp) {
+		exp += tmp;
 	}
 
 	// 第1 ～ 0ビット
