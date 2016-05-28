@@ -231,11 +231,6 @@ Expansion SPR::DoubleType_0111(Node s, Node d, int n) {
 				c = DoubleType_0111_Sub2(c, index - 4, expX, expY, expZ, &exp);
 			}
 		}
-		/*
-		cout << index << endl << c << endl;
-		cout << "-----------------" << endl;
-		(exp).Show();
-		cout << "-----------------" << endl;*/
 		--index;
 	}
 
@@ -415,7 +410,7 @@ Node SPR::DoubleType_0111_Sub2(Node c, int index, Expansion expA, Expansion expB
 			}
 		}
 		else {					// abcd=...00cd...‚Ìê‡
-			DoubleType_0111_Sub1(c, index - 1, expA, expB, exp);
+			c = DoubleType_0111_Sub1(c, index - 1, expA, expB, exp);
 		}
 	}
 
@@ -469,7 +464,6 @@ Expansion SPR::DoubleType_1011(Node s, Node d, int n) {
 		}
 		--index;
 	}
-
 	// ‘æ3`2ƒrƒbƒg
 	ulong tmp = c.GetAddr() & 0b1100;
 	if (tmp) {
@@ -503,7 +497,7 @@ Node SPR::DoubleType_1011_Sub1(Node c, int index, Expansion expA, Expansion expB
 		case 0b100:	// abcd... = 100d...
 			expX = expB + GetBin(0b10, index + 1);
 			expY = expA + GetBin(0b11, index);
-			c.Pop(0b01, index);
+			c.Pop(0b1, index);
 			c = DoubleType_1011_Sub2(c, index - 3, expX, expY, exp);
 			break;
 		case 0b101:	// abcd... = 101d...
@@ -532,17 +526,15 @@ Node SPR::DoubleType_1011_Sub2(Node c, int index, Expansion expA, Expansion expB
 	else {
 		switch (c.Subsequence(index, 3)) {
 		case 0b100:	// abcd... = 100d...
-			bin = GetBin(0b11, index);
 			expX = expB + GetBin(0b11, index + 2);
-			expY = expA + bin;
-			c.Pop(bin);
-			c = DoubleType_1011_Sub1(c, index - 3, expX, expY, exp);
+			expY = expA + GetBin(0b11, index);
+			c.Pop(1, index);
+			c = DoubleType_1011_Sub2(c, index - 3, expX, expY, exp);
 			break;
 		case 0b101:	// abcd... = 101d...
 			expX = expB + GetBin(0b11, index + 2);
 			expY = expA + GetBin(0b10, index);
-			bin = GetBin(0b01, index);
-			c.Pop(bin);
+			c.Pop(1, index);
 			c = DoubleType_1011_Sub1(c, index - 2, expX, expY, exp);
 			break;
 		}

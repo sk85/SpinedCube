@@ -335,12 +335,12 @@ namespace sample {
 
 int main() {
 	
-	//　１０まではおｋ
-	sample::check_CalcDistance(11, 11);
+	//　13まではおｋ
+	sample::check_CalcDistance(14, 14);
 
 	ulong s = 1;
-	ulong d = 1171;
-	int dim = 11;
+	ulong d = 12343;
+	int dim = 14;
 	cout << "s = " << Node(s) << endl;
 	cout << "d = " << Node(d) << endl;
 	cout << Node(s ^ d) << endl << endl;
