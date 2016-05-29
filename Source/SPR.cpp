@@ -51,6 +51,8 @@ Expansion SPR::GetMinimalExpansion(Node s, Node d, int n) {
 		}
 		else {
 			if (MinExp > (tmpExp = DoubleType_0111(s, d, n))) MinExp = tmpExp;
+			if (MinExp > (tmpExp = TripleType_000111(s, d, n))) MinExp = tmpExp;
+			if (MinExp > (tmpExp = TripleType_011011(s, d, n))) MinExp = tmpExp;
 		}
 	}
 	else {								// 隣01
@@ -636,6 +638,9 @@ Expansion SPR::TripleType_000111(Node s, Node d, int n) {
 		exp += 0b0010;
 	}
 	exp += 0b0001;
+	if ((s.GetType() ^ d.GetType()) == 0b10) {
+		exp += 0b0001;
+	}
 
 	return exp;
 }
@@ -717,7 +722,7 @@ Node SPR::TripleType_000111_Sub2(Node c, int index, Expansion expA, Expansion ex
 
 
 
-/*	011011の場合	*/
+/*	001011の場合	*/
 // main
 Expansion SPR::TripleType_001011(Node s, Node d, int n) {
 	Expansion exp;
@@ -747,9 +752,18 @@ Expansion SPR::TripleType_001011(Node s, Node d, int n) {
 	}
 
 	// 第3~2ビット
-	ulong tmp = c.GetAddr() & 0b1100;
-	if (tmp) {
-		exp += tmp;
+	if (c[3]) {
+		if (c[2]) {
+			exp += 0b1100;
+		}
+		else {
+			exp += 0b1000;
+		}
+	}
+	else {
+		if (c[2]) {
+			exp += 0b0100;
+		}
 	}
 
 	// 第1 ～ 0ビット
@@ -811,6 +825,9 @@ Expansion SPR::TripleType_011011(Node s, Node d, int n) {
 
 	// 第0ビット
 	exp += 0b0001;
+	if ((s.GetType() ^ d.GetType()) == 0b10) {
+		exp += 0b0001;
+	}
 
 	return exp;
 }

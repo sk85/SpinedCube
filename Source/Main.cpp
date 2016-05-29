@@ -234,10 +234,7 @@ public:
 	// 距離を計算
 	// 適宜オーバーライドすること
 	virtual int CalcDistance(ulong s, ulong d) {
-		int* distanceTable = CalcDistanceTableWPS(s);
-		ulong distance = distanceTable[d];
-		delete[] distanceTable;
-		return distance;
+		return CalcDistanceWPS(s, d);
 	}
 
 	// 隣接頂点を返す
@@ -272,6 +269,14 @@ public:
 			}
 		}
 
+		return distance;
+	}
+
+	// 距離を計算(幅優先)
+	int CalcDistanceWPS(ulong s, ulong d) {
+		int* distanceTable = CalcDistanceTableWPS(s);
+		ulong distance = distanceTable[d];
+		delete[] distanceTable;
 		return distance;
 	}
 };
@@ -326,6 +331,7 @@ namespace sample {
 						printf_s("d(%d, %d) CalcDist=%d, WPS=%d\n", i, d, dist, ary[d]);
 					}
 				}
+				delete[] ary;
 			}
 			cout << endl;
 			
@@ -335,23 +341,42 @@ namespace sample {
 
 int main() {
 	
+	int k;
+	/*
+	SQ sq;
+	sq.SetDimension(14);
+	ulong c = 1, n = 1, d = 12343;
+	int distc = sq.CalcDistanceWPS(c, d), distn;
+	while (n != d) {
+		cout << Node(n) << " " << n << endl;
+		for (size_t i = 0; i < 14; i++)
+		{
+			n = sq.GetNeighbor(c, i);
+			distn = sq.CalcDistanceWPS(n, d);
+			if (distn < distc) break;
+		}
+		c = n; distc = distn;
+	}
+
+	cin >> k;
+	return 0;*/
+
 	//　13まではおｋ
-	sample::check_CalcDistance(14, 14);
+	sample::check_CalcDistance(2, 18);
 
 	ulong s = 1;
-	ulong d = 12343;
-	int dim = 14;
+	ulong d = 131;
+	int dim = 8;
 	cout << "s = " << Node(s) << endl;
 	cout << "d = " << Node(d) << endl;
 	cout << Node(s ^ d) << endl << endl;
-	//SPR::TripleType_000111(s, d, dim).Show();
+	//SPR::TripleType_011011(s, d, dim).Show();
 	SPR::GetMinimalExpansion(s, d, dim).Show();
 
 
 	
-	int k;
-	cin >> k;
 
+	cin >> k;
 	
 
 
